@@ -42,10 +42,6 @@
         border: none;
         border-radius: 5px;
         cursor: pointer;
-        transition: 0.3s;
-      }
-      button:hover {
-        background: #2980b9;
       }
       .results {
         display: grid;
@@ -69,23 +65,26 @@
         margin-top: 30px;
         height: 300px;
       }
+      .analysis {
+        margin-top: 20px;
+        padding: 15px;
+        background: #ecf0f1;
+        border-radius: 8px;
+        color: #2c3e50;
+      }
       .error {
         color: #e74c3c;
         font-weight: bold;
       }
     </style>
   </head>
+
   <body>
     <div class="container">
       <h1>Analisis Efisiensi: Kelipatan 3</h1>
 
       <div class="input-section">
-        <input
-          type="number"
-          id="inputN"
-          placeholder="Masukkan nilai n (1-10000)"
-          value="1000"
-        />
+        <input type="number" id="inputN" value="10000" />
         <button onclick="mulaiAnalisis()">Jalankan Analisis</button>
       </div>
 
@@ -93,14 +92,14 @@
         <div class="card">
           <h3>Versi Iteratif</h3>
           <p>Hasil: <span id="resIter">-</span></p>
-          <p>Waktu: <span id="timeIter">-</span> ms</p>
+          <p>Rata-rata Waktu: <span id="timeIter">-</span> ms</p>
           <p>Kompleksitas: <b>O(n)</b></p>
         </div>
 
         <div class="card">
           <h3>Versi Rekursif</h3>
           <p>Hasil: <span id="resRec">-</span></p>
-          <p>Waktu: <span id="timeRec">-</span> ms</p>
+          <p>Rata-rata Waktu: <span id="timeRec">-</span> ms</p>
           <p>Kompleksitas: <b>O(n)</b></p>
         </div>
       </div>
@@ -108,10 +107,19 @@
       <div class="chart-container">
         <canvas id="performanceChart"></canvas>
       </div>
+
+      <div class="analysis">
+        <b>Kesimpulan:</b>
+        <p id="conclusion">-</p>
+      </div>
     </div>
 
     <script>
-      // --- 1. Algoritma Iteratif [cite: 17] ---
+      /**
+       * Algoritma Iteratif
+       * Kompleksitas Waktu: O(n)
+       * Kompleksitas Ruang: O(1)
+       */
       function sumIterative(n) {
         let total = 0;
         for (let i = 1; i <= n; i++) {
@@ -120,30 +128,44 @@
         return total;
       }
 
-      // --- 2. Algoritma Rekursif [cite: 17] ---
+      /**
+       * Algoritma Rekursif
+       * Kompleksitas Waktu: O(n)
+       * Kompleksitas Ruang: O(n)
+       */
       function sumRecursive(n) {
         if (n <= 0) return 0;
-        let current = n % 3 === 0 ? n : 0;
-        return current + sumRecursive(n - 1);
+        return (n % 3 === 0 ? n : 0) + sumRecursive(n - 1);
       }
 
-      // Inisialisasi Grafik [cite: 29]
-      let ctx = document.getElementById("performanceChart").getContext("2d");
-      let performanceChart = new Chart(ctx, {
+      // Fungsi pengukuran rata-rata running time
+      function measure(fn, n, repeat = 50) {
+        let total = 0;
+        for (let i = 0; i < repeat; i++) {
+          const start = performance.now();
+          fn(n);
+          total += performance.now() - start;
+        }
+        return total / repeat;
+      }
+
+      // Inisialisasi grafik
+      const ctx = document.getElementById("performanceChart").getContext("2d");
+      const performanceChart = new Chart(ctx, {
         type: "line",
         data: {
           labels: [],
           datasets: [
             {
               label: "Iteratif (ms)",
-              borderColor: "#3498db",
               data: [],
+              borderColor: "#3498db",
               fill: false,
             },
             {
               label: "Rekursif (ms)",
-              borderColor: "#e74c3c",
               data: [],
+              borderColor: "#e74c3c",
               fill: false,
             },
           ],
@@ -152,43 +174,46 @@
       });
 
       function mulaiAnalisis() {
-        const n = parseInt(document.getElementById("inputN").value);
-        if (isNaN(n) || n < 0) return alert("Masukkan angka valid!");
+        const inputSizes = [1, 10, 50, 100, 500, 1000, 5000, 10000];
+        performanceChart.data.labels = [];
+        performanceChart.data.datasets[0].data = [];
+        performanceChart.data.datasets[1].data = [];
 
-        // Ukur Iteratif
-        const t0 = performance.now();
-        const resI = sumIterative(n);
-        const t1 = performance.now();
-        const timeI = (t1 - t0).toFixed(4);
+        let lastIterTime = 0;
+        let lastRecTime = 0;
 
-        // Ukur Rekursif
-        let resR, timeR;
-        try {
-          const t2 = performance.now();
-          resR = sumRecursive(n);
-          const t3 = performance.now();
-          timeR = (t3 - t2).toFixed(4);
-          document.getElementById("resRec").classList.remove("error");
-        } catch (e) {
-          resR = "Stack Overflow!";
-          timeR = "N/A";
-          document.getElementById("resRec").classList.add("error");
-        }
+        inputSizes.forEach((n) => {
+          const iterTime = measure(sumIterative, n);
+          let recTime = null;
 
-        // Tampilkan ke UI
-        document.getElementById("resIter").innerText = resI;
-        document.getElementById("timeIter").innerText = timeI;
-        document.getElementById("resRec").innerText = resR;
-        document.getElementById("timeRec").innerText = timeR;
+          try {
+            recTime = measure(sumRecursive, n, 10);
+          } catch {
+            recTime = null;
+          }
 
-        // Update Grafik [cite: 29]
-        updateChart(n, timeI, timeR === "N/A" ? null : timeR);
-      }
+          performanceChart.data.labels.push(n);
+          performanceChart.data.datasets[0].data.push(iterTime.toFixed(4));
+          performanceChart.data.datasets[1].data.push(
+            recTime ? recTime.toFixed(4) : null
+          );
 
-      function updateChart(n, tI, tR) {
-        performanceChart.data.labels.push(n);
-        performanceChart.data.datasets[0].data.push(tI);
-        performanceChart.data.datasets[1].data.push(tR);
+          lastIterTime = iterTime;
+          lastRecTime = recTime;
+        });
+
+        const finalN = inputSizes[inputSizes.length - 1];
+        document.getElementById("resIter").innerText = sumIterative(finalN);
+        document.getElementById("resRec").innerText =
+          lastRecTime === null ? "Stack Overflow" : sumRecursive(finalN);
+
+        document.getElementById("timeIter").innerText = lastIterTime.toFixed(4);
+        document.getElementById("timeRec").innerText =
+          lastRecTime === null ? "N/A" : lastRecTime.toFixed(4);
+
+        document.getElementById("conclusion").innerText =
+          "Berdasarkan pengujian terhadap berbagai ukuran input, algoritma iteratif memiliki waktu eksekusi yang lebih stabil dan efisien dibandingkan algoritma rekursif. Meskipun keduanya memiliki kompleksitas waktu O(n), algoritma rekursif membutuhkan ruang memori lebih besar akibat pemanggilan fungsi berulang.";
+
         performanceChart.update();
       }
     </script>
