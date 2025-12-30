@@ -219,7 +219,7 @@
         } catch (e) {
           hasilRec = "N/A";
           waktuRec = null;
-          document.getElementById("errorRec").style.display = "block"; // Deteksi Stack Overflow
+          document.getElementById("errorRec").style.display = "block";
         }
 
         document.getElementById("valIter").innerText =
@@ -231,6 +231,7 @@
         document.getElementById("timeRec").innerText = waktuRec
           ? `Waktu: ${waktuRec} ms`
           : "Waktu: Error";
+
         performanceChart.data.labels.push(n);
         performanceChart.data.datasets[0].data.push(waktuIter);
         performanceChart.data.datasets[1].data.push(waktuRec);
