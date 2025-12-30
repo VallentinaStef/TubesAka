@@ -3,217 +3,237 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Dashboard Analisis Algoritma Kelipatan 3</title>
+    <title>Analisis Sistem Promosi Kasir - Kelompok HIDUP TEKA</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-      body {
-        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-        background-color: #f4f7f6;
-        margin: 20px;
+      :root {
+        --primary: #2c3e50;
+        --accent: #e74c3c;
+        --blue: #3498db;
       }
-      .container {
-        max-width: 900px;
+      body {
+        font-family: "Segoe UI", sans-serif;
+        background-color: #f0f2f5;
+        margin: 0;
+        padding: 20px;
+      }
+      .dashboard {
+        max-width: 1000px;
         margin: auto;
         background: white;
-        padding: 25px;
-        border-radius: 12px;
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        padding: 30px;
+        border-radius: 15px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
       }
-      h1 {
+      header {
         text-align: center;
-        color: #2c3e50;
+        border-bottom: 3px solid var(--primary);
+        margin-bottom: 30px;
+        padding-bottom: 10px;
       }
-      .input-section {
+      .input-group {
         display: flex;
-        gap: 10px;
-        margin-bottom: 20px;
         justify-content: center;
+        gap: 15px;
+        margin-bottom: 30px;
       }
       input {
-        padding: 10px;
-        border: 1px solid #ddd;
-        border-radius: 5px;
-        width: 200px;
+        padding: 12px;
+        border: 2px solid #ddd;
+        border-radius: 8px;
+        width: 250px;
+        font-size: 16px;
       }
       button {
-        padding: 10px 20px;
-        background: #3498db;
+        padding: 12px 25px;
+        background: var(--blue);
         color: white;
         border: none;
-        border-radius: 5px;
+        border-radius: 8px;
         cursor: pointer;
+        font-weight: bold;
+        transition: 0.3s;
       }
-      .results {
+      button:hover {
+        background: #2980b9;
+        transform: translateY(-2px);
+      }
+      .cards {
         display: grid;
         grid-template-columns: 1fr 1fr;
         gap: 20px;
-        margin-top: 20px;
       }
       .card {
-        padding: 15px;
-        border: 1px solid #eee;
-        border-radius: 8px;
-        background: #fafafa;
+        padding: 20px;
+        border-radius: 10px;
+        color: white;
+        position: relative;
+        overflow: hidden;
       }
-      .card h3 {
-        margin-top: 0;
-        color: #34495e;
-        border-bottom: 2px solid #3498db;
-        padding-bottom: 5px;
+      .card.iterative {
+        background: var(--blue);
       }
-      .chart-container {
-        margin-top: 30px;
-        height: 300px;
+      .card.recursive {
+        background: var(--accent);
       }
-      .analysis {
-        margin-top: 20px;
-        padding: 15px;
-        background: #ecf0f1;
-        border-radius: 8px;
-        color: #2c3e50;
+      .card h2 {
+        margin: 0 0 10px 0;
+        font-size: 1.2rem;
+        opacity: 0.9;
       }
-      .error {
-        color: #e74c3c;
+      .card .value {
+        font-size: 2rem;
         font-weight: bold;
+        margin-bottom: 5px;
+      }
+      .card .time {
+        font-family: monospace;
+        font-size: 1rem;
+        background: rgba(0, 0, 0, 0.2);
+        padding: 5px 10px;
+        border-radius: 5px;
+        display: inline-block;
+      }
+      .chart-section {
+        margin-top: 40px;
+        padding: 20px;
+        background: #fff;
+        border: 1px solid #eee;
+        border-radius: 10px;
+        height: 350px;
+      }
+      .error-msg {
+        color: #ffeb3b;
+        font-weight: bold;
+        margin-top: 10px;
+        display: none;
       }
     </style>
   </head>
-
   <body>
-    <div class="container">
-      <h1>Analisis Efisiensi: Kelipatan 3</h1>
+    <div class="dashboard">
+      <header>
+        <h1>Sistem Analisis Promosi Kasir</h1>
+        <p>Kelompok HIDUP TEKA | SE-48-03</p>
+      </header>
 
-      <div class="input-section">
-        <input type="number" id="inputN" value="10000" />
-        <button onclick="mulaiAnalisis()">Jalankan Analisis</button>
+      <div class="input-group">
+        <input
+          type="number"
+          id="inputN"
+          placeholder="Jumlah Transaksi (n)"
+          value="1000"
+        />
+        <button onclick="jalankanAnalisis()">Proses Promo</button>
       </div>
 
-      <div class="results">
-        <div class="card">
-          <h3>Versi Iteratif</h3>
-          <p>Hasil: <span id="resIter">-</span></p>
-          <p>Rata-rata Waktu: <span id="timeIter">-</span> ms</p>
-          <p>Kompleksitas: <b>O(n)</b></p>
+      <div class="cards">
+        <div class="card iterative">
+          <h2>Metode Iteratif [O(n)]</h2>
+          <div id="valIter" class="value">0</div>
+          <div>Promo Ditemukan</div>
+          <div id="timeIter" class="time">Waktu: 0 ms</div>
         </div>
 
-        <div class="card">
-          <h3>Versi Rekursif</h3>
-          <p>Hasil: <span id="resRec">-</span></p>
-          <p>Rata-rata Waktu: <span id="timeRec">-</span> ms</p>
-          <p>Kompleksitas: <b>O(n)</b></p>
+        <div class="card recursive">
+          <h2>Metode Rekursif [O(n)]</h2>
+          <div id="valRec" class="value">0</div>
+          <div>Promo Ditemukan</div>
+          <div id="timeRec" class="time">Waktu: 0 ms</div>
+          <div id="errorRec" class="error-msg">⚠️ Stack Overflow!</div>
         </div>
       </div>
 
-      <div class="chart-container">
+      <div class="chart-section">
         <canvas id="performanceChart"></canvas>
-      </div>
-
-      <div class="analysis">
-        <b>Kesimpulan:</b>
-        <p id="conclusion">-</p>
       </div>
     </div>
 
     <script>
-      /**
-       * Algoritma Iteratif
-       * Kompleksitas Waktu: O(n)
-       * Kompleksitas Ruang: O(1)
-       */
-      function sumIterative(n) {
-        let total = 0;
+      function hitungPromoIteratif(n) {
+        let count = 0;
         for (let i = 1; i <= n; i++) {
-          if (i % 3 === 0) total += i;
+          if (i % 3 === 0) count++;
         }
-        return total;
+        return count;
       }
 
-      /**
-       * Algoritma Rekursif
-       * Kompleksitas Waktu: O(n)
-       * Kompleksitas Ruang: O(n)
-       */
-      function sumRecursive(n) {
+      function hitungPromoRekursif(n) {
         if (n <= 0) return 0;
-        return (n % 3 === 0 ? n : 0) + sumRecursive(n - 1);
+        let promo = n % 3 === 0 ? 1 : 0;
+        return promo + hitungPromoRekursif(n - 1);
       }
 
-      // Fungsi pengukuran rata-rata running time
-      function measure(fn, n, repeat = 50) {
-        let total = 0;
-        for (let i = 0; i < repeat; i++) {
-          const start = performance.now();
-          fn(n);
-          total += performance.now() - start;
-        }
-        return total / repeat;
-      }
-
-      // Inisialisasi grafik
       const ctx = document.getElementById("performanceChart").getContext("2d");
-      const performanceChart = new Chart(ctx, {
+      let performanceChart = new Chart(ctx, {
         type: "line",
         data: {
           labels: [],
           datasets: [
             {
               label: "Iteratif (ms)",
-              data: [],
               borderColor: "#3498db",
+              backgroundColor: "#3498db",
+              data: [],
               fill: false,
+              tension: 0.1,
             },
             {
               label: "Rekursif (ms)",
-              data: [],
               borderColor: "#e74c3c",
+              backgroundColor: "#e74c3c",
+              data: [],
               fill: false,
+              tension: 0.1,
             },
           ],
         },
-        options: { responsive: true, maintainAspectRatio: false },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            y: { title: { display: true, text: "Waktu Eksekusi (ms)" } },
+            x: { title: { display: true, text: "Jumlah Transaksi (n)" } },
+          },
+        },
       });
 
-      function mulaiAnalisis() {
-        const inputSizes = [1, 10, 50, 100, 500, 1000, 5000, 10000];
-        performanceChart.data.labels = [];
-        performanceChart.data.datasets[0].data = [];
-        performanceChart.data.datasets[1].data = [];
+      function jalankanAnalisis() {
+        const n = parseInt(document.getElementById("inputN").value);
+        if (isNaN(n) || n < 0)
+          return alert("Masukkan jumlah transaksi yang valid!");
 
-        let lastIterTime = 0;
-        let lastRecTime = 0;
+        document.getElementById("errorRec").style.display = "none";
 
-        inputSizes.forEach((n) => {
-          const iterTime = measure(sumIterative, n);
-          let recTime = null;
+        const t0 = performance.now();
+        const hasilIter = hitungPromoIteratif(n);
+        const t1 = performance.now();
+        const waktuIter = (t1 - t0).toFixed(4);
 
-          try {
-            recTime = measure(sumRecursive, n, 10);
-          } catch {
-            recTime = null;
-          }
+        let hasilRec, waktuRec;
+        try {
+          const t2 = performance.now();
+          hasilRec = hitungPromoRekursif(n);
+          const t3 = performance.now();
+          waktuRec = (t3 - t2).toFixed(4);
+        } catch (e) {
+          hasilRec = "N/A";
+          waktuRec = null;
+          document.getElementById("errorRec").style.display = "block"; // Deteksi Stack Overflow
+        }
 
-          performanceChart.data.labels.push(n);
-          performanceChart.data.datasets[0].data.push(iterTime.toFixed(4));
-          performanceChart.data.datasets[1].data.push(
-            recTime ? recTime.toFixed(4) : null
-          );
-
-          lastIterTime = iterTime;
-          lastRecTime = recTime;
-        });
-
-        const finalN = inputSizes[inputSizes.length - 1];
-        document.getElementById("resIter").innerText = sumIterative(finalN);
-        document.getElementById("resRec").innerText =
-          lastRecTime === null ? "Stack Overflow" : sumRecursive(finalN);
-
-        document.getElementById("timeIter").innerText = lastIterTime.toFixed(4);
-        document.getElementById("timeRec").innerText =
-          lastRecTime === null ? "N/A" : lastRecTime.toFixed(4);
-
-        document.getElementById("conclusion").innerText =
-          "Berdasarkan pengujian terhadap berbagai ukuran input, algoritma iteratif memiliki waktu eksekusi yang lebih stabil dan efisien dibandingkan algoritma rekursif. Meskipun keduanya memiliki kompleksitas waktu O(n), algoritma rekursif membutuhkan ruang memori lebih besar akibat pemanggilan fungsi berulang.";
-
+        document.getElementById("valIter").innerText =
+          hasilIter.toLocaleString();
+        document.getElementById(
+          "timeIter"
+        ).innerText = `Waktu: ${waktuIter} ms`;
+        document.getElementById("valRec").innerText = hasilRec.toLocaleString();
+        document.getElementById("timeRec").innerText = waktuRec
+          ? `Waktu: ${waktuRec} ms`
+          : "Waktu: Error";
+        performanceChart.data.labels.push(n);
+        performanceChart.data.datasets[0].data.push(waktuIter);
+        performanceChart.data.datasets[1].data.push(waktuRec);
         performanceChart.update();
       }
     </script>
